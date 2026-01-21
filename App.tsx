@@ -8,6 +8,7 @@ import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Contact from './pages/Contact';
 
 const App: React.FC = () => {
   return (
@@ -21,9 +22,9 @@ const App: React.FC = () => {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/contact" element={<Contact />} />
               <Route path="/courses" element={<Home />} /> 
               <Route path="/news" element={<Home />} />
-              <Route path="/contact" element={<Home />} />
             </Routes>
           </main>
           <Footer />

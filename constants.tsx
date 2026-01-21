@@ -113,6 +113,16 @@ export const TRANSLATIONS: TranslationStrings = {
     fr: "Enregistrer",
     en: "Save",
     ar: "حفظ"
+  },
+  whoWeAre: {
+    fr: "Qui sommes-nous ?",
+    en: "Who are we?",
+    ar: "من نحن؟"
+  },
+  aboutUsText: {
+    fr: "TAMKIN ACADEMY est un centre d'excellence dédié au développement des compétences en Algérie. Notre mission est de fournir des formations de haute qualité, alliant théorie et pratique, pour propulser votre carrière.",
+    en: "TAMKIN ACADEMY is a center of excellence dedicated to skills development in Algeria. Our mission is to provide high-quality training, combining theory and practice, to propel your career.",
+    ar: "أكاديمية تمكين هي مركز تميز مخصص لتطوير المهارات في الجزائر. مهمتنا هي تقديم تدريب عالي الجودة ، يجمع بين النظرية والتطبيق ، لدفع حياتك المهنية."
   }
 };
 

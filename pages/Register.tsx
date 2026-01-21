@@ -31,15 +31,18 @@ const Register: React.FC = () => {
   };
 
   return (
-    <div className="min-h-[90vh] flex items-center justify-center px-4 py-16 bg-slate-50">
+    <div className="min-h-[90vh] flex items-center justify-center px-4 py-16 bg-slate-50 relative overflow-hidden">
+      <div className="absolute top-0 right-0 w-96 h-96 bg-[#bf953f]/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
       <div className="bg-white p-12 rounded-[2.5rem] shadow-2xl max-w-lg w-full border border-slate-100 relative overflow-hidden">
         <div className="relative z-10">
           <div className="text-center mb-8">
-            <div className="w-20 h-20 bg-emerald-600 rounded-3xl mx-auto mb-6 flex items-center justify-center text-white text-4xl font-black shadow-xl shadow-emerald-200">
-              M
+            <div className="relative w-24 h-24 mx-auto mb-8 flex items-center justify-center rounded-full border-4 border-[#bf953f] bg-white shadow-xl">
+               <div className="bg-green-700 w-full h-full rounded-full flex items-center justify-center">
+                  <i className="fas fa-graduation-cap text-white text-4xl"></i>
+               </div>
             </div>
             <h2 className="text-3xl font-black text-slate-800 mb-2">{TRANSLATIONS.register[language]}</h2>
-            <p className="text-slate-500">Rejoignez la communauté MAAMRA School</p>
+            <p className="text-slate-500">Rejoignez la communauté TAMKIN ACADEMY</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -50,7 +53,7 @@ const Register: React.FC = () => {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-600 transition-all outline-none"
+                className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:ring-4 focus:ring-green-50 focus:border-green-700 outline-none"
                 placeholder="Ex: Mohamed Amine"
               />
             </div>
@@ -61,8 +64,8 @@ const Register: React.FC = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-600 transition-all outline-none"
-                placeholder="Ex: student@maamra.dz"
+                className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:ring-4 focus:ring-green-50 focus:border-green-700 outline-none"
+                placeholder="Ex: student@tamkin.dz"
               />
             </div>
             <div>
@@ -72,7 +75,7 @@ const Register: React.FC = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-600 transition-all outline-none"
+                className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:ring-4 focus:ring-green-50 focus:border-green-700 outline-none"
                 placeholder="••••••••"
               />
             </div>
@@ -83,13 +86,13 @@ const Register: React.FC = () => {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
-                className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-600 transition-all outline-none"
+                className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:ring-4 focus:ring-green-50 focus:border-green-700 outline-none"
                 placeholder="••••••••"
               />
             </div>
 
             {error && (
-              <div className="p-4 bg-red-50 text-red-600 text-sm rounded-xl font-medium">
+              <div className="p-4 bg-red-50 text-red-600 text-sm rounded-xl font-medium border border-red-100">
                 {error}
               </div>
             )}
@@ -97,15 +100,15 @@ const Register: React.FC = () => {
             <button 
               type="submit" 
               disabled={auth.isLoading}
-              className="w-full bg-emerald-600 text-white py-5 rounded-2xl text-lg font-black shadow-xl shadow-emerald-200 hover:bg-emerald-700 hover:-translate-y-1 transition-all flex items-center justify-center"
+              className="w-full bg-green-700 text-white py-5 rounded-2xl text-lg font-black shadow-xl shadow-green-100 hover:bg-green-800 transition-all flex items-center justify-center"
             >
               {auth.isLoading ? <i className="fas fa-spinner fa-spin mr-2"></i> : TRANSLATIONS.register[language]}
             </button>
           </form>
 
           <div className="mt-8 pt-8 border-t border-slate-100 text-center">
-            <p className="text-sm text-slate-500">
-              {TRANSLATIONS.alreadyHaveAccount[language]} <Link to="/login" className="text-emerald-600 font-bold hover:underline">{TRANSLATIONS.login[language]}</Link>
+            <p className="text-sm text-slate-500 font-bold">
+              {TRANSLATIONS.alreadyHaveAccount[language]} <Link to="/login" className="text-green-700 font-bold hover:underline">{TRANSLATIONS.login[language]}</Link>
             </p>
           </div>
         </div>
