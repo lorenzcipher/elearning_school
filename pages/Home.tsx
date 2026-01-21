@@ -67,14 +67,16 @@ const Home: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
           {MOCK_COURSES.map(course => (
             <div key={course.id} className="group bg-white rounded-[2rem] overflow-hidden shadow-xl border border-slate-100 hover:shadow-2xl transition-all duration-500 flex flex-col">
-              <div className="relative h-64 overflow-hidden">
+              <Link to={`/course/${course.id}`} className="relative h-64 overflow-hidden block">
                 <img src={course.image} alt={course.title[language]} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                 <div className="absolute top-6 right-6 bg-white/95 backdrop-blur-sm px-4 py-1.5 rounded-full text-[10px] font-black text-[#bf953f] shadow-md uppercase tracking-wider border border-[#bf953f]/20">
                   {course.category}
                 </div>
-              </div>
+              </Link>
               <div className="p-10 flex flex-col flex-grow">
-                <h3 className="text-2xl font-black text-slate-800 mb-4 group-hover:text-green-700 transition-colors leading-tight">{course.title[language]}</h3>
+                <Link to={`/course/${course.id}`} className="block">
+                  <h3 className="text-2xl font-black text-slate-800 mb-4 group-hover:text-green-700 transition-colors leading-tight">{course.title[language]}</h3>
+                </Link>
                 <p className="text-slate-500 text-sm mb-8 leading-relaxed line-clamp-3">{course.description[language]}</p>
                 <div className="mt-auto pt-6 border-t border-slate-50 flex items-center justify-between">
                   <div className="flex flex-col">
