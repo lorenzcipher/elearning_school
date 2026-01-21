@@ -1,16 +1,28 @@
 
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Role } from '../types';
+import { Role, Course, NewsItem } from '../types';
 import { geminiService } from '../services/geminiService';
-import { TRANSLATIONS, MOCK_COURSES } from '../constants';
+import { TRANSLATIONS } from '../constants';
 
 const Dashboard: React.FC = () => {
-  const { auth, language, users, enrolledCourseIds, updateUserRole, addNotification } = useApp();
-  const [activeTab, setActiveTab] = useState<'main' | 'users' | 'my-courses' | 'messages' | 'profile'>('main');
+  const { 
+    auth, language, users, courses, news, enrolledCourseIds, 
+    updateUserRole, addNotification, 
+    addCourse, updateCourse, deleteCourse,
+    addNews, updateNews, deleteNews 
+  } = useApp();
+
+  const [activeTab, setActiveTab] = useState<'main' | 'users' | 'my-courses' | 'messages' | 'profile' | 'manage-courses' | 'manage-news'>('main');
   const [aiInput, setAiInput] = useState('');
   const [aiResponse, setAiResponse] = useState('');
   const [isAiLoading, setIsAiLoading] = useState(false);
+
+  // Form states for CRUD
+  const [editingCourse, setEditingCourse] = useState<Partial<Course> | null>(null);
+  const [editingNews, setEditingNews] = useState<Partial<NewsItem> | null>(null);
+  const [isAddingCourse, setIsAddingCourse] = useState(false);
+  const [isAddingNews, setIsAddingNews] = useState(false);
 
   if (!auth.isAuthenticated || !auth.user) {
     return (
@@ -34,8 +46,201 @@ const Dashboard: React.FC = () => {
     setIsAiLoading(false);
   };
 
+  const handleCourseSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingCourse) {
+      if (isAddingCourse) {
+        addCourse(editingCourse as any);
+      } else {
+        updateCourse(editingCourse.id!, editingCourse);
+      }
+      setIsAddingCourse(false);
+      setEditingCourse(null);
+    }
+  };
+
+  const handleNewsSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingNews) {
+      if (isAddingNews) {
+        addNews(editingNews as any);
+      } else {
+        updateNews(editingNews.id!, editingNews);
+      }
+      setIsAddingNews(false);
+      setEditingNews(null);
+    }
+  };
+
+  const renderManageCourses = () => {
+    const isInstructorOrAdmin = auth.user?.role === Role.ADMIN || auth.user?.role === Role.INSTRUCTOR;
+    if (!isInstructorOrAdmin) return <div className="p-10 text-center">Accès non autorisé</div>;
+
+    const filteredCourses = auth.user?.role === Role.INSTRUCTOR 
+      ? courses.filter(c => c.instructorId === auth.user?.id) 
+      : courses;
+
+    return (
+      <div className="bg-white p-10 rounded-[2.5rem] shadow-xl border border-slate-100 animate-fade-in">
+        <div className="flex justify-between items-center mb-10">
+          <h3 className="text-2xl font-black text-slate-800">Gestion des Formations</h3>
+          <button 
+            onClick={() => {
+              setEditingCourse({
+                title: { fr: '', en: '', ar: '' },
+                description: { fr: '', en: '', ar: '' },
+                category: 'IT',
+                price: 0,
+                image: '',
+                instructorId: auth.user?.id
+              });
+              setIsAddingCourse(true);
+            }}
+            className="bg-green-700 text-white px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-green-800 transition-all"
+          >
+            Nouveau Cours
+          </button>
+        </div>
+
+        {editingCourse ? (
+          <form onSubmit={handleCourseSubmit} className="space-y-6 bg-slate-50 p-8 rounded-3xl border border-slate-200">
+            <h4 className="font-black text-slate-800">{isAddingCourse ? 'Créer une formation' : 'Modifier la formation'}</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-[10px] font-black uppercase mb-2 text-slate-400">Titre (FR)</label>
+                <input required type="text" className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-green-100 outline-none" 
+                  value={editingCourse.title?.fr} onChange={e => setEditingCourse({...editingCourse, title: {...editingCourse.title!, fr: e.target.value}})} />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black uppercase mb-2 text-slate-400">Catégorie</label>
+                <input required type="text" className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-green-100 outline-none" 
+                  value={editingCourse.category} onChange={e => setEditingCourse({...editingCourse, category: e.target.value})} />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black uppercase mb-2 text-slate-400">Prix (DA)</label>
+                <input required type="number" className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-green-100 outline-none" 
+                  value={editingCourse.price} onChange={e => setEditingCourse({...editingCourse, price: parseInt(e.target.value)})} />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black uppercase mb-2 text-slate-400">Image URL</label>
+                <input required type="text" className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-green-100 outline-none" 
+                  value={editingCourse.image} onChange={e => setEditingCourse({...editingCourse, image: e.target.value})} />
+              </div>
+            </div>
+            <div>
+              <label className="block text-[10px] font-black uppercase mb-2 text-slate-400">Description (FR)</label>
+              <textarea required className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-green-100 outline-none h-32" 
+                value={editingCourse.description?.fr} onChange={e => setEditingCourse({...editingCourse, description: {...editingCourse.description!, fr: e.target.value}})} />
+            </div>
+            <div className="flex gap-4">
+              <button type="submit" className="bg-green-700 text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest">Enregistrer</button>
+              <button type="button" onClick={() => {setEditingCourse(null); setIsAddingCourse(false);}} className="bg-slate-200 text-slate-600 px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest">Annuler</button>
+            </div>
+          </form>
+        ) : (
+          <div className="grid grid-cols-1 gap-6">
+            {filteredCourses.map(c => (
+              <div key={c.id} className="flex items-center justify-between p-6 border border-slate-100 rounded-[2rem] hover:shadow-lg transition-all">
+                <div className="flex items-center gap-6">
+                  <img src={c.image} className="w-20 h-20 object-cover rounded-2xl" alt="" />
+                  <div>
+                    <h4 className="font-black text-slate-800">{c.title[language]}</h4>
+                    <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">{c.category} • {c.price} DA</p>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <button onClick={() => setEditingCourse(c)} className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-colors flex items-center justify-center">
+                    <i className="fas fa-edit"></i>
+                  </button>
+                  <button onClick={() => deleteCourse(c.id)} className="w-10 h-10 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors flex items-center justify-center">
+                    <i className="fas fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderManageNews = () => {
+    if (auth.user?.role !== Role.ADMIN) return <div className="p-10 text-center">Accès non autorisé</div>;
+
+    return (
+      <div className="bg-white p-10 rounded-[2.5rem] shadow-xl border border-slate-100 animate-fade-in">
+        <div className="flex justify-between items-center mb-10">
+          <h3 className="text-2xl font-black text-slate-800">Gestion des Actualités</h3>
+          <button 
+            onClick={() => {
+              setEditingNews({
+                title: { fr: '', en: '', ar: '' },
+                content: { fr: '', en: '', ar: '' },
+                date: new Date().toISOString().split('T')[0],
+                image: ''
+              });
+              setIsAddingNews(true);
+            }}
+            className="bg-green-700 text-white px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-green-800 transition-all"
+          >
+            Nouvelle Actualité
+          </button>
+        </div>
+
+        {editingNews ? (
+          <form onSubmit={handleNewsSubmit} className="space-y-6 bg-slate-50 p-8 rounded-3xl border border-slate-200">
+            <h4 className="font-black text-slate-800">{isAddingNews ? 'Publier une actualité' : 'Modifier l\'actualité'}</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-[10px] font-black uppercase mb-2 text-slate-400">Titre (FR)</label>
+                <input required type="text" className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-green-100 outline-none" 
+                  value={editingNews.title?.fr} onChange={e => setEditingNews({...editingNews, title: {...editingNews.title!, fr: e.target.value}})} />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black uppercase mb-2 text-slate-400">Image URL</label>
+                <input required type="text" className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-green-100 outline-none" 
+                  value={editingNews.image} onChange={e => setEditingNews({...editingNews, image: e.target.value})} />
+              </div>
+            </div>
+            <div>
+              <label className="block text-[10px] font-black uppercase mb-2 text-slate-400">Contenu (FR)</label>
+              <textarea required className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-green-100 outline-none h-32" 
+                value={editingNews.content?.fr} onChange={e => setEditingNews({...editingNews, content: {...editingNews.content!, fr: e.target.value}})} />
+            </div>
+            <div className="flex gap-4">
+              <button type="submit" className="bg-green-700 text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest">Publier</button>
+              <button type="button" onClick={() => {setEditingNews(null); setIsAddingNews(false);}} className="bg-slate-200 text-slate-600 px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest">Annuler</button>
+            </div>
+          </form>
+        ) : (
+          <div className="grid grid-cols-1 gap-6">
+            {news.map(n => (
+              <div key={n.id} className="flex items-center justify-between p-6 border border-slate-100 rounded-[2rem] hover:shadow-lg transition-all">
+                <div className="flex items-center gap-6">
+                  <img src={n.image} className="w-20 h-20 object-cover rounded-2xl" alt="" />
+                  <div>
+                    <h4 className="font-black text-slate-800">{n.title[language]}</h4>
+                    <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">{n.date}</p>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <button onClick={() => setEditingNews(n)} className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-colors flex items-center justify-center">
+                    <i className="fas fa-edit"></i>
+                  </button>
+                  <button onClick={() => deleteNews(n.id)} className="w-10 h-10 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors flex items-center justify-center">
+                    <i className="fas fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const renderEnrolledCourses = () => {
-    const enrolled = MOCK_COURSES.filter(c => enrolledCourseIds.includes(c.id));
+    const enrolled = courses.filter(c => enrolledCourseIds.includes(c.id));
     return (
       <div className="bg-white p-10 rounded-[2.5rem] shadow-xl border border-slate-100 animate-fade-in">
         <h3 className="text-2xl font-black text-slate-800 mb-8">Mes Formations</h3>
@@ -232,17 +437,39 @@ const Dashboard: React.FC = () => {
             >
               <i className="fas fa-book-open mr-4 rtl:ml-4"></i> Mes Cursus
             </button>
+
+            {(auth.user?.role === Role.ADMIN || auth.user?.role === Role.INSTRUCTOR) && (
+              <button 
+                onClick={() => setActiveTab('manage-courses')}
+                className={`w-full text-left px-8 py-5 rounded-2xl font-black text-sm uppercase tracking-wider transition-all flex items-center ${activeTab === 'manage-courses' ? 'bg-green-700 text-white shadow-xl shadow-green-100' : 'text-slate-500 hover:bg-slate-50'}`}
+              >
+                <i className="fas fa-tasks mr-4 rtl:ml-4"></i> CRM Cours
+              </button>
+            )}
+
+            {auth.user?.role === Role.ADMIN && (
+              <button 
+                onClick={() => setActiveTab('manage-news')}
+                className={`w-full text-left px-8 py-5 rounded-2xl font-black text-sm uppercase tracking-wider transition-all flex items-center ${activeTab === 'manage-news' ? 'bg-green-700 text-white shadow-xl shadow-green-100' : 'text-slate-500 hover:bg-slate-50'}`}
+              >
+                <i className="fas fa-newspaper mr-4 rtl:ml-4"></i> CRM Actualités
+              </button>
+            )}
+
+            {auth.user?.role === Role.ADMIN && (
+              <button 
+                onClick={() => setActiveTab('users')}
+                className={`w-full text-left px-8 py-5 rounded-2xl font-black text-sm uppercase tracking-wider transition-all flex items-center ${activeTab === 'users' ? 'bg-green-700 text-white shadow-xl shadow-green-100' : 'text-slate-500 hover:bg-slate-50'}`}
+              >
+                <i className="fas fa-users-cog mr-4 rtl:ml-4"></i> Utilisateurs
+              </button>
+            )}
+
             <button 
               onClick={() => { setActiveTab('messages'); addNotification('Service de messagerie bientôt activé!', 'info'); }}
               className={`w-full text-left px-8 py-5 rounded-2xl font-black text-sm uppercase tracking-wider transition-all flex items-center ${activeTab === 'messages' ? 'bg-green-700 text-white shadow-xl shadow-green-100' : 'text-slate-500 hover:bg-slate-50'}`}
             >
               <i className="fas fa-comments mr-4 rtl:ml-4"></i> Messagerie
-            </button>
-            <button 
-              onClick={() => { setActiveTab('profile'); addNotification('Édition du profil bientôt disponible!', 'info'); }}
-              className={`w-full text-left px-8 py-5 rounded-2xl font-black text-sm uppercase tracking-wider transition-all flex items-center ${activeTab === 'profile' ? 'bg-green-700 text-white shadow-xl shadow-green-100' : 'text-slate-500 hover:bg-slate-50'}`}
-            >
-              <i className="fas fa-id-card mr-4 rtl:ml-4"></i> Profil
             </button>
           </div>
         </div>
@@ -251,6 +478,8 @@ const Dashboard: React.FC = () => {
           {activeTab === 'main' && renderMainDashboard()}
           {activeTab === 'users' && renderUserManagement()}
           {activeTab === 'my-courses' && renderEnrolledCourses()}
+          {activeTab === 'manage-courses' && renderManageCourses()}
+          {activeTab === 'manage-news' && renderManageNews()}
         </div>
       </div>
     </div>

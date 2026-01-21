@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User, Role, Language, AuthState } from '../types';
+import { User, Role, Language, AuthState, Course, NewsItem } from '../types';
+import { MOCK_COURSES, MOCK_NEWS } from '../constants';
 
 interface Notification {
   id: string;
@@ -12,6 +13,8 @@ interface AppContextType {
   auth: AuthState;
   language: Language;
   users: User[];
+  courses: Course[];
+  news: NewsItem[];
   enrolledCourseIds: string[];
   notifications: Notification[];
   setLanguage: (lang: Language) => void;
@@ -22,6 +25,14 @@ interface AppContextType {
   logout: () => void;
   addNotification: (message: string, type?: 'success' | 'error' | 'info') => void;
   removeNotification: (id: string) => void;
+  // Course CRUD
+  addCourse: (course: Omit<Course, 'id' | 'enrolledCount'>) => void;
+  updateCourse: (id: string, course: Partial<Course>) => void;
+  deleteCourse: (id: string) => void;
+  // News CRUD
+  addNews: (item: Omit<NewsItem, 'id'>) => void;
+  updateNews: (id: string, item: Partial<NewsItem>) => void;
+  deleteNews: (id: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -35,6 +46,8 @@ const INITIAL_USERS: User[] = [
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [language, setLanguage] = useState<Language>('fr');
   const [users, setUsers] = useState<User[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [news, setNews] = useState<NewsItem[]>([]);
   const [enrolledCourseIds, setEnrolledCourseIds] = useState<string[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [auth, setAuth] = useState<AuthState>({
@@ -47,6 +60,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const savedUsers = localStorage.getItem('school_users');
     if (savedUsers) setUsers(JSON.parse(savedUsers));
     else setUsers(INITIAL_USERS);
+
+    const savedCourses = localStorage.getItem('school_courses');
+    if (savedCourses) setCourses(JSON.parse(savedCourses));
+    else setCourses(MOCK_COURSES);
+
+    const savedNews = localStorage.getItem('school_news');
+    if (savedNews) setNews(JSON.parse(savedNews));
+    else setNews(MOCK_NEWS);
 
     const savedEnrollments = localStorage.getItem('enrollments');
     if (savedEnrollments) setEnrolledCourseIds(JSON.parse(savedEnrollments));
@@ -71,6 +92,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   useEffect(() => {
     if (users.length > 0) localStorage.setItem('school_users', JSON.stringify(users));
   }, [users]);
+
+  useEffect(() => {
+    localStorage.setItem('school_courses', JSON.stringify(courses));
+  }, [courses]);
+
+  useEffect(() => {
+    localStorage.setItem('school_news', JSON.stringify(news));
+  }, [news]);
 
   useEffect(() => {
     localStorage.setItem('enrollments', JSON.stringify(enrolledCourseIds));
@@ -141,14 +170,49 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     addNotification('Déconnecté avec succès.', 'info');
   };
 
+  // Course CRUD handlers
+  const addCourse = (course: Omit<Course, 'id' | 'enrolledCount'>) => {
+    const newCourse = { ...course, id: `c-${Date.now()}`, enrolledCount: 0 };
+    setCourses(prev => [...prev, newCourse]);
+    addNotification('Cours créé avec succès', 'success');
+  };
+
+  const updateCourse = (id: string, courseData: Partial<Course>) => {
+    setCourses(prev => prev.map(c => c.id === id ? { ...c, ...courseData } : c));
+    addNotification('Cours mis à jour', 'success');
+  };
+
+  const deleteCourse = (id: string) => {
+    setCourses(prev => prev.filter(c => c.id !== id));
+    addNotification('Cours supprimé', 'info');
+  };
+
+  // News CRUD handlers
+  const addNews = (item: Omit<NewsItem, 'id'>) => {
+    const newItem = { ...item, id: `n-${Date.now()}` };
+    setNews(prev => [...prev, newItem]);
+    addNotification('Actualité publiée', 'success');
+  };
+
+  const updateNews = (id: string, itemData: Partial<NewsItem>) => {
+    setNews(prev => prev.map(n => n.id === id ? { ...n, ...itemData } : n));
+    addNotification('Actualité mise à jour', 'success');
+  };
+
+  const deleteNews = (id: string) => {
+    setNews(prev => prev.filter(n => n.id !== id));
+    addNotification('Actualité supprimée', 'info');
+  };
+
   return (
     <AppContext.Provider value={{ 
-      auth, language, users, enrolledCourseIds, notifications,
+      auth, language, users, courses, news, enrolledCourseIds, notifications,
       setLanguage, login, register, logout, updateUserRole, enrollCourse, 
-      addNotification, removeNotification 
+      addNotification, removeNotification,
+      addCourse, updateCourse, deleteCourse,
+      addNews, updateNews, deleteNews
     }}>
       {children}
-      {/* Toast Notification UI */}
       <div className="fixed bottom-4 right-4 z-[9999] flex flex-col gap-2">
         {notifications.map(n => (
           <div key={n.id} className={`px-6 py-4 rounded-2xl shadow-2xl border flex items-center gap-3 animate-fade-in-up transition-all ${

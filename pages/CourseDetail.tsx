@@ -2,23 +2,23 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { MOCK_COURSES, TRANSLATIONS } from '../constants';
+import { TRANSLATIONS } from '../constants';
 import { Course } from '../types';
 
 const CourseDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { language, enrollCourse, enrolledCourseIds } = useApp();
+  const { language, enrollCourse, enrolledCourseIds, courses } = useApp();
   const navigate = useNavigate();
   const [course, setCourse] = useState<Course | null>(null);
 
   useEffect(() => {
-    const foundCourse = MOCK_COURSES.find(c => c.id === id);
+    const foundCourse = courses.find(c => c.id === id);
     if (foundCourse) {
       setCourse(foundCourse);
     } else {
       navigate('/');
     }
-  }, [id, navigate]);
+  }, [id, courses, navigate]);
 
   if (!course) return null;
 

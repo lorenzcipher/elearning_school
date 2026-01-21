@@ -1,11 +1,11 @@
 
 import React from 'react';
 import { useApp } from '../context/AppContext';
-import { TRANSLATIONS, MOCK_COURSES, MOCK_NEWS } from '../constants';
+import { TRANSLATIONS } from '../constants';
 import { Link, useNavigate } from 'react-router-dom';
 
 const Home: React.FC = () => {
-  const { language, enrollCourse, addNotification } = useApp();
+  const { language, enrollCourse, addNotification, courses, news } = useApp();
   const navigate = useNavigate();
 
   const handleNewsClick = (title: string) => {
@@ -65,7 +65,7 @@ const Home: React.FC = () => {
           </Link>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-          {MOCK_COURSES.map(course => (
+          {courses.map(course => (
             <div key={course.id} className="group bg-white rounded-[2rem] overflow-hidden shadow-xl border border-slate-100 hover:shadow-2xl transition-all duration-500 flex flex-col">
               <Link to={`/course/${course.id}`} className="relative h-64 overflow-hidden block">
                 <img src={course.image} alt={course.title[language]} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
@@ -168,20 +168,20 @@ const Home: React.FC = () => {
           <h2 className="text-4xl font-black text-slate-800 mt-4">{TRANSLATIONS.latestNews[language]}</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-          {MOCK_NEWS.map(news => (
-            <div key={news.id} className="group flex flex-col sm:flex-row bg-white rounded-[2.5rem] overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 border border-slate-50">
+          {news.map(item => (
+            <div key={item.id} className="group flex flex-col sm:flex-row bg-white rounded-[2.5rem] overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 border border-slate-50">
               <div className="w-full sm:w-64 h-64 sm:h-auto overflow-hidden">
-                <img src={news.image} alt={news.title[language]} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                <img src={item.image} alt={item.title[language]} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
               </div>
               <div className="p-10 flex flex-col justify-center">
                 <div className="flex items-center space-x-2 rtl:space-x-reverse mb-4">
                   <span className="w-2 h-2 rounded-full bg-[#bf953f]"></span>
-                  <span className="text-[#bf953f] text-[10px] font-black uppercase tracking-widest">{news.date}</span>
+                  <span className="text-[#bf953f] text-[10px] font-black uppercase tracking-widest">{item.date}</span>
                 </div>
-                <h3 className="text-2xl font-black text-slate-800 mb-4 leading-tight">{news.title[language]}</h3>
-                <p className="text-slate-500 text-sm mb-6 line-clamp-2 leading-relaxed">{news.content[language]}</p>
+                <h3 className="text-2xl font-black text-slate-800 mb-4 leading-tight">{item.title[language]}</h3>
+                <p className="text-slate-500 text-sm mb-6 line-clamp-2 leading-relaxed">{item.content[language]}</p>
                 <button 
-                  onClick={() => handleNewsClick(news.title[language])}
+                  onClick={() => handleNewsClick(item.title[language])}
                   className="text-slate-900 font-black text-xs uppercase tracking-wider hover:text-green-700 transition-colors self-start flex items-center"
                 >
                    Lire le communiqué <i className="fas fa-chevron-right ml-2 rtl:mr-2 rtl:rotate-180 text-[10px]"></i>
