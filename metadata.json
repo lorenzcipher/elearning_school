@@ -1,0 +1,8 @@
+{
+  "name": "TAMKIN ACADEMY",
+  "description": "An elite education portal for TAMKIN ACADEMY in Algeria, featuring course management, student dashboards, and multilingual support.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
